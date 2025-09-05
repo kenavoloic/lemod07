@@ -1,0 +1,202 @@
+<!-- templates/suivi_conducteurs/dashboard.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<!-- <link href="{% static 'css/dashboard.css' %}" rel="stylesheet"> -->
+{% endblock %}
+
+{% block main_class %}container-fluid mt-4{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="row mb-4">
+	<div class="col-12">
+		<h1 class="display-5 mb-3 text-primary">
+			<i class="fas fa-tachometer-alt text-primary"></i>
+			Suivi des évaluations
+		</h1>
+		<h5 class="mb-3 text-primary">
+        	  <i class="fas fa-bolt text-primary"></i>
+		  Évaluations
+		</h5>
+	</div>
+</div>
+
+<!-- Statistiques -->
+<div class="row mb-4">
+	<div class="col-md-3">
+		<div class="card text-center stats-card">
+			<div class="card-body">
+				<i class="fas fa-users fa-3x text-primary mb-3 stats-icon"></i>
+				<h3 class="text-primary stats-number">{{ total_conducteurs }}</h3>
+				<p class="text-primary stats-label">Conducteurs actifs</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center stats-card success">
+			<div class="card-body">
+				<i class="fas fa-clipboard-check fa-3x text-success mb-3 stats-icon"></i>
+				<h3 class="text-success stats-number">{{ total_evaluations }}</h3>
+				<p class="text-primary stats-label">Évaluations totales</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center stats-card info">
+			<div class="card-body">
+				<i class="fas fa-clipboard-check fa-3x text-info mb-3 stats-icon"></i>
+				<h3 class="text-info stats-number">{{ evaluations_ce_mois }}</h3>
+				<p class="text-primary stats-label">Évaluations ce mois-ci</p>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-3">
+		<div class="card text-center stats-card warning">
+			<div class="card-body">
+				<i class="fas fa-plus fa-3x text-warning mb-3 stats-icon"></i>
+				<h3 class="text-warning stats-number">
+					<a href="{% url 'suivi_conducteurs:create_evaluation' %}" class="btn btn-warning">
+						Nouvelle
+					</a>
+				</h3>
+				<p class="text-primary stats-label">Évaluation</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row mb-4">
+	<div class="col-12">
+		<div class="quick-actions">
+			<h5 class="mb-3 text-primary">
+				<i class="fas fa-bolt text-primary"></i>
+				Actions rapides
+			</h5>
+			<div class="row">
+				<div class="col-md-4 mb-3">
+					<a href="{% url 'suivi_conducteurs:create_evaluation' %}" class="btn btn-success btn-lg w-100">
+						<i class="fas fa-plus-circle"></i>
+						<span>Nouvelle évaluation</span>
+					</a>
+				</div>
+				<div class="col-md-4 mb-3">
+					<a href="{% url 'suivi_conducteurs:evaluation_list' %}" class="btn btn-info btn-lg w-100">
+						<i class="fas fa-list"></i>
+						<span>Voir les évaluations</span>
+					</a>
+				</div>
+				<div class="col-md-4 mb-3">
+					<a href="/admin/" class="btn btn-secondary btn-lg w-100">
+						<i class="fas fa-cog"></i>
+						<span>Administration</span>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Évaluations récentes -->
+{% if evaluations_recentes %}
+<div class="row">
+	<div class="col-12">
+		<div class="card recent-activities">
+			<div class="card-header bg-secondary text-white">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-history"></i>
+					Évaluations récentes
+				</h5>
+			</div>
+			<div class="card-body p-0">
+				<div class="table-responsive">
+					<table class="table table-hover mb-0">
+						<thead class="table-light">
+							<tr>
+								<th>Date</th>
+								<th>Conducteur</th>
+								<th>Type</th>
+								<th>Score</th>
+								<th>Évaluateur</th>
+								<th>Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							{% for evaluation in evaluations_recentes %}
+							<tr>
+								<td>{{ evaluation.date_evaluation|date:"d/m/Y" }}</td>
+								<td>
+									<strong>{{ evaluation.conducteur.nom_complet }}</strong>
+									<br>{{ evaluation.conducteur.site.nom_commune }}
+								</td>
+								<td>
+									<span class="badge 
+                                        {% if evaluation.type_evaluation.abreviation == 'rh1' %}bg-info
+                                        {% elif evaluation.type_evaluation.abreviation == 'ex1' %}bg-success
+                                        {% else %}bg-warning text-dark{% endif %}">
+										{{ evaluation.type_evaluation.nom }}
+									</span>
+								</td>
+								<td>
+									{% with score=evaluation.calculate_score %}
+									{% if score is not None %}
+									<span class="badge 
+                                                {% if score >= 80 %}bg-success
+                                                {% elif score >= 65 %}bg-info
+                                                {% elif score >= 50 %}bg-warning text-dark
+                                                {% else %}bg-danger{% endif %}">
+										{{ score }}%
+									</span>
+									{% else %}
+									<span class="badge bg-secondary">-</span>
+									{% endif %}
+									{% endwith %}
+								</td>
+								<td>
+									{{ evaluation.evaluateur.nom_complet }}
+								</td>
+								<td>
+									<a href="{% url 'suivi_conducteurs:evaluation_detail' evaluation.pk %}"
+										class="btn btn-sm btn-outline-primary">
+										<i class="fas fa-eye"></i> Voir
+									</a>
+								</td>
+							</tr>
+							{% endfor %}
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+	// Animation des cartes de statistiques
+	document.addEventListener('DOMContentLoaded', function () {
+		const statsCards = document.querySelectorAll('.stats-card');
+
+		// Animation d'apparition en cascade
+		statsCards.forEach((card, index) => {
+			card.style.opacity = '0';
+			card.style.transform = 'translateY(20px)';
+
+			setTimeout(() => {
+				card.style.transition = 'all 0.6s ease';
+				card.style.opacity = '1';
+				card.style.transform = 'translateY(0)';
+			}, index * 100);
+		});
+	});
+</script>
+{% endblock %}

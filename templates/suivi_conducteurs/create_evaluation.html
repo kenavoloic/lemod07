@@ -1,0 +1,430 @@
+<!-- templates/suivi_conducteurs/create_evaluation.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Créer une évaluation - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+<!-- <link href="{% static 'css/evaluation.css' %}" rel="stylesheet"> -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/htmx.org@1.9.6"></script>
+<script src="{% static 'js/validation.js' %}"></script>
+{% endblock %}
+
+{% block main_class %}container mt-4{% endblock %}
+
+{% block content %}
+<div class="row">
+	<div class="col-md-12">
+		<h1 class="mb-4 text-primary">
+			<i class="fas fa-clipboard-check text-primary"></i>
+			Créer une évaluation
+		</h1>
+
+		<div class="card">
+			<div class="card-header">
+				<h5 class="card-title mb-0 text-primary">Informations de l'évaluation</h5>
+			</div>
+			<div class="card-body">
+				<form id="evaluation-form" method="post" action="{% url 'suivi_conducteurs:submit_evaluation' %}">
+					{% csrf_token %}
+
+					<div class="row">
+						<div class="col-md-6">
+							<div class="mb-3">
+								<label for="conducteur" class="form-label text-primary">Conducteur à évaluer</label>
+								<select name="conducteur" id="conducteur" class="form-select" required>
+									<option value="">Sélectionner un conducteur</option>
+									{% for conducteur in conducteurs %}
+									<option value="{{ conducteur.id }}">
+										{{ conducteur.nom_complet }} - {{ conducteur.salsocid.socnom }}
+									</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="mb-3">
+								<label for="evaluateur" class="form-label text-primary">
+									Évaluateur
+									<small class="text-primary">(RH ou Exploitation uniquement)</small>
+								</label>
+								<select name="evaluateur" id="evaluateur" class="form-select" required>
+									<option value="">Sélectionner un évaluateur</option>
+									{% for evaluateur in evaluateurs %}
+		<option value="{{ evaluateur.id }}"
+			data-groups="{% if evaluateur.user %}{% for group in evaluateur.user.groups.all %}{{ group.name }}{% if not forloop.last %},{% endif %}{% endfor %}{% endif %}">
+			{{ evaluateur.nom_complet }} - {{ evaluateur.service.nom }}
+			{% if evaluateur.service.abreviation %}({{ evaluateur.service.abreviation }}){% endif %}
+		</option>
+
+									{% endfor %}
+								</select>
+								<div class="form-text">
+									<i class="fas fa-info-circle text-info me-1"></i>
+									Seuls les évaluateurs des groupes RH et Exploitation peuvent effectuer des
+									évaluations.
+									{% if not evaluateurs %}
+									<br><span class="text-warning">
+										<i class="fas fa-exclamation-triangle me-1"></i>
+										Aucun évaluateur RH ou Exploitation disponible. Contactez l'administrateur.
+									</span>
+									{% endif %}
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-6">
+							<div class="mb-3">
+								<label for="type_evaluation" class="form-label text-primary">Type d'évaluation</label>
+								<select name="type_evaluation" id="type_evaluation" class="form-select" required
+									hx-get="{% url 'suivi_conducteurs:load_criteres_htmx' %}"
+									hx-target="#criteres-container" hx-trigger="change" hx-include="this">
+									<option value="">Sélectionner un type</option>
+									{% for type_eval in types_evaluation %}
+									<option value="{{ type_eval.id }}">{{ type_eval.nom }}</option>
+									{% endfor %}
+								</select>
+							</div>
+						</div>
+
+						<div class="col-md-6">
+							<div class="mb-3">
+								<label for="date_evaluation" class="form-label text-primary">Date d'évaluation</label>
+					<!-- <input type="date" name="date_evaluation" id="date_evaluation" class="form-control" required> -->
+										<div class="form-control-plaintext bg-light border rounded px-3 py-2">
+											{{ date_du_jour|date:"d/m/Y" }}
+										</div>
+										</div>
+						</div>
+					</div>
+
+					<!-- Avertissement si pas d'évaluateur disponible -->
+					{% if not evaluateurs %}
+					<div class="alert alert-warning">
+						<h5><i class="fas fa-exclamation-triangle me-2"></i>Aucun évaluateur disponible</h5>
+						<p class="mb-2">
+							Aucun évaluateur des groupes RH ou Exploitation n'a été trouvé.
+							Pour pouvoir créer une évaluation, il faut :
+						</p>
+						<ul class="mb-3">
+							<li>Que des utilisateurs soient assignés aux groupes "RH" ou "Exploitation"</li>
+							<li>Que ces utilisateurs aient un profil évaluateur créé</li>
+						</ul>
+						<div class="d-flex gap-2">
+							{% if user.is_staff %}
+							<a href="{% url 'admin:auth_group_changelist' %}" class="btn btn-outline-primary btn-sm">
+								<i class="fas fa-users me-1"></i>Gérer les groupes
+							</a>
+							<a href="{% url 'admin:suivi_conducteurs_evaluateur_changelist' %}"
+								class="btn btn-outline-info btn-sm">
+								<i class="fas fa-user-tie me-1"></i>Gérer les évaluateurs
+							</a>
+							{% endif %}
+							<a href="{% url 'suivi_conducteurs:evaluation_list' %}"
+								class="btn btn-outline-secondary btn-sm">
+								<i class="fas fa-list me-1"></i>Retour à la liste
+							</a>
+						</div>
+					</div>
+					{% endif %}
+
+					<!-- Container pour les critères (chargé via HTMX) -->
+					<div id="criteres-container">
+						<!-- Les critères seront chargés ici via HTMX -->
+					</div>
+
+					<div class="d-flex justify-content-between mt-4">
+						<a href="{% url 'suivi_conducteurs:evaluation_list' %}" class="btn btn-secondary">
+							<i class="fas fa-arrow-left"></i> Retour à la liste
+						</a>
+						<button type="submit" id="submit-btn" class="btn btn-primary submit-btn" disabled {% if not evaluateurs %} style="display: none;" {% endif %}>
+							<span class="normal-content">
+								<i class="fas fa-save"></i> Créer l'évaluation
+							</span>
+							<span class="loading d-none">
+								<i class="fas fa-spinner fa-spin"></i> Création...
+							</span>
+						</button>
+					</div>
+				</form>
+			</div>
+		</div>
+
+		<!-- Informations sur les évaluateurs -->
+		{% if evaluateurs %}
+		<div class="card mt-4">
+			<div class="card-header bg-info text-white">
+				<h6 class="card-title mb-0">
+					<i class="fas fa-info-circle me-2"></i>
+					Évaluateurs disponibles ({{ evaluateurs.count }})
+				</h6>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					{% for evaluateur in evaluateurs %}
+					<div class="col-md-4 mb-3">
+						<div class="card border-0 bg-light h-100">
+							<div class="card-body p-3">
+								<div class="d-flex align-items-center">
+									<i class="fas fa-user-tie fa-2x text-primary me-3"></i>
+									<div>
+										<h6 class="mb-1">{{ evaluateur.nom_complet }}</h6>
+										<small class="text-muted">{{ evaluateur.service.nom }}</small>
+										<div class="mt-1">
+											{% for group in evaluateur.user.groups.all %}
+											<span class="badge me-1"
+												style="background-color: {% if group.groupe_etendu %}{{ group.groupe_etendu.couleur }}{% else %}var(--bs-secondary){% endif %}; font-size: 0.7rem;">
+												{{ group.name }}
+											</span>
+											{% endfor %}
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+		{% endif %}
+	</div>
+</div>
+{% endblock %}
+
+{% block init_scripts %}
+<script>
+
+	document.addEventListener('DOMContentLoaded', function () {
+		const evaluateurSelect = document.getElementById('evaluateur');
+
+		console.log('🔍 DEBUG: Options des évaluateurs:');
+		Array.from(evaluateurSelect.options).forEach((option, index) => {
+			if (option.value) {
+				console.log(`Option ${index}:`, {
+					value: option.value,
+					text: option.textContent,
+					'data-groups': option.dataset.groups,
+					'data-groups (raw)': option.getAttribute('data-groups')
+				});
+			}
+		});
+
+		// Test de la validation
+		evaluateurSelect.addEventListener('change', function (e) {
+			const selectedOption = e.target.options[e.target.selectedIndex];
+			if (selectedOption && selectedOption.value) {
+				console.log('🔍 DEBUG: Option sélectionnée:', {
+					value: selectedOption.value,
+					text: selectedOption.textContent,
+					'data-groups': selectedOption.dataset.groups,
+					'groups array': (selectedOption.dataset.groups || '').split(',').map(g => g.trim())
+				});
+			}
+		});
+	});
+	// Gestion de la validation progressive
+	let validFields = new Set();
+	let requiredFields = new Set();
+
+	// Fonction pour vérifier si tous les champs sont valides
+	function checkFormValidity() {
+		const submitBtn = document.getElementById('submit-btn');
+		const allValid = requiredFields.size > 0 && validFields.size === requiredFields.size;
+
+		// Vérifier aussi qu'il y a des évaluateurs disponibles
+		const evaluateurSelect = document.getElementById('evaluateur');
+		const hasEvaluateurs = evaluateurSelect.options.length > 1;
+
+		if (allValid && hasEvaluateurs) {
+			submitBtn.disabled = false;
+			submitBtn.classList.add('enabled');
+		} else {
+			submitBtn.disabled = true;
+			submitBtn.classList.remove('enabled');
+		}
+	}
+
+	// Validation des champs principaux
+	document.addEventListener('change', function (e) {
+		if (e.target.matches('#conducteur, #evaluateur, #type_evaluation, #date_evaluation')) {
+			if (e.target.value) {
+				validFields.add(e.target.id);
+				e.target.classList.remove('invalid');
+				e.target.classList.add('valid');
+			} else {
+				validFields.delete(e.target.id);
+				e.target.classList.remove('valid');
+				e.target.classList.add('invalid');
+			}
+			checkFormValidity();
+		}
+	});
+
+	// Validation spéciale pour l'évaluateur
+	document.getElementById('evaluateur').addEventListener('change', function (e) {
+		const selectedOption = e.target.options[e.target.selectedIndex];
+		if (selectedOption && selectedOption.value) {
+			const groups = selectedOption.dataset.groups || '';
+			const validGroups = ['RH', 'Exploitation'];
+			const evaluatorGroups = groups.split(',').map(g => g.trim());
+
+			// Vérifier si l'évaluateur appartient aux bons groupes
+			const hasValidGroup = evaluatorGroups.some(group => validGroups.includes(group));
+
+			if (!hasValidGroup) {
+				// Afficher un avertissement si l'évaluateur n'a pas les bons groupes
+				console.warn('Évaluateur sélectionné sans groupe RH ou Exploitation');
+			}
+		}
+	});
+
+	// Gestion des réponses HTMX pour les critères
+	document.body.addEventListener('htmx:afterRequest', function (evt) {
+		if (evt.detail.target.id === 'criteres-container') {
+			// Réinitialiser les champs de notes
+			requiredFields.clear();
+			validFields.clear();
+
+			// Ajouter les champs principaux comme requis
+			['conducteur', 'evaluateur', 'type_evaluation', 'date_evaluation'].forEach(field => {
+				requiredFields.add(field);
+				const fieldElement = document.getElementById(field);
+				if (fieldElement && fieldElement.value) {
+					validFields.add(field);
+				}
+			});
+
+			// Ajouter les nouveaux champs de notes comme requis
+			const noteInputs = document.querySelectorAll('.note-input');
+			noteInputs.forEach(input => {
+				requiredFields.add(input.id);
+
+				// Validation en temps réel
+				input.addEventListener('input', function () {
+					const critereId = this.dataset.critereId;
+					const min = parseInt(this.min);
+					const max = parseInt(this.max);
+					const value = parseInt(this.value);
+					const validationDiv = document.getElementById(`validation-${critereId}`);
+
+					if (isNaN(value) || value < min || value > max) {
+						validFields.delete(this.id);
+						this.classList.remove('valid');
+						this.classList.add('invalid');
+						if (validationDiv) {
+							validationDiv.innerHTML = `<span class="validation-feedback invalid"><i class="fas fa-times-circle"></i> Entre ${min} et ${max}</span>`;
+						}
+					} else {
+						validFields.add(this.id);
+						this.classList.remove('invalid');
+						this.classList.add('valid');
+						if (validationDiv) {
+							validationDiv.innerHTML = `<span class="validation-feedback valid"><i class="fas fa-check-circle"></i> Valide</span>`;
+						}
+					}
+					checkFormValidity();
+				});
+			});
+
+			checkFormValidity();
+		}
+	});
+
+	// Validation finale avant soumission
+	document.getElementById('evaluation-form').addEventListener('submit', function (e) {
+		const submitBtn = document.getElementById('submit-btn');
+		if (submitBtn.disabled) {
+			e.preventDefault();
+			alert('Veuillez remplir tous les champs correctement avant de soumettre.');
+			return;
+		}
+
+		// Vérifier que l'évaluateur appartient aux bons groupes
+		const evaluateurSelect = document.getElementById('evaluateur');
+		const selectedOption = evaluateurSelect.options[evaluateurSelect.selectedIndex];
+		if (selectedOption && selectedOption.value) {
+			const groups = selectedOption.dataset.groups || '';
+			const validGroups = ['RH', 'Exploitation'];
+			const evaluatorGroups = groups.split(',').map(g => g.trim());
+
+			const hasValidGroup = evaluatorGroups.some(group => validGroups.includes(group));
+			if (!hasValidGroup) {
+				e.preventDefault();
+				alert('L\'évaluateur sélectionné doit appartenir au groupe RH ou Exploitation.');
+				return;
+			}
+		}
+
+		// Afficher l'état de chargement
+		const normalContent = submitBtn.querySelector('.normal-content');
+		const loadingContent = submitBtn.querySelector('.loading');
+		if (normalContent && loadingContent) {
+			normalContent.classList.add('d-none');
+			loadingContent.classList.remove('d-none');
+			submitBtn.disabled = true;
+		}
+	});
+
+	// Initialiser les champs requis de base
+	['conducteur', 'evaluateur', 'type_evaluation', 'date_evaluation'].forEach(field => {
+		requiredFields.add(field);
+	});
+
+	// Masquer/afficher le bouton selon la disponibilité des évaluateurs
+	document.addEventListener('DOMContentLoaded', function () {
+		const evaluateurSelect = document.getElementById('evaluateur');
+		const submitBtn = document.getElementById('submit-btn');
+
+		if (evaluateurSelect.options.length <= 1) {
+			// Pas d'évaluateurs disponibles
+			submitBtn.style.display = 'none';
+		}
+	});
+
+	checkFormValidity();
+
+	document.addEventListener('DOMContentLoaded', function () {
+		console.log('🔍 DEBUG: Diagnostic des évaluateurs');
+
+		const evaluateurSelect = document.getElementById('evaluateur');
+
+		console.log('📋 OPTIONS DES ÉVALUATEURS:');
+		Array.from(evaluateurSelect.options).forEach((option, index) => {
+			if (option.value) {
+				console.log(`Option ${index}:`, {
+					value: option.value,
+					text: option.textContent.trim(),
+					'data-groups': option.dataset.groups,
+					'data-groups (getAttribute)': option.getAttribute('data-groups')
+				});
+			}
+		});
+
+		// Test de la validation en direct
+		evaluateurSelect.addEventListener('change', function (e) {
+			console.log('🔍 DEBUG: Changement d\'évaluateur');
+			const selectedOption = e.target.options[e.target.selectedIndex];
+			if (selectedOption && selectedOption.value) {
+				const groups = selectedOption.dataset.groups || '';
+				const validGroups = ['RH', 'Exploitation'];
+				const evaluatorGroups = groups.split(',').map(g => g.trim());
+
+				console.log('DEBUG: Validation évaluateur:', {
+					'Option sélectionnée': selectedOption.textContent.trim(),
+					'data-groups brut': groups,
+					'Groupes parsés': evaluatorGroups,
+					'Groupes valides attendus': validGroups,
+					'A un groupe valide': evaluatorGroups.some(group => validGroups.includes(group))
+				});
+			}
+		});
+	});
+</script>
+{% endblock %}

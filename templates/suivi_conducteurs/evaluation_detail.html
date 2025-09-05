@@ -1,0 +1,223 @@
+<!-- templates/suivi_conducteurs/evaluation_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Évaluation - {{ evaluation.conducteur.nom_complet }} - {{ block.super }}{% endblock %}
+
+{% block extra_css %}
+
+{% endblock %}
+
+{% block main_class %}container mt-4 position-relative{% endblock %}
+
+{% block content %}
+<!-- Bouton d'impression -->
+<!-- <button onclick="window.print()" class="btn btn-outline-secondary print-btn no-print">
+	<i class="fas fa-print"></i> Imprimer
+</button> -->
+
+<!-- En-tête -->
+<div class="row mb-4">
+	<div class="col-12">
+		<h1 class="display-6 mb-3 text-primary">
+			<i class="fas fa-clipboard-check text-primary"></i>
+			{{ evaluation.type_evaluation.nom }}
+		</h1>
+	</div>
+</div>
+
+<!-- Informations principales -->
+<div class="row mb-4">
+	<div class="col-md-8">
+		<div class="card">
+			<div class="card-header bg-primary text-white">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-info-circle"></i>
+					Informations de l'évaluation
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="row">
+					<div class="col-md-6">
+						<p><strong>Conducteur</strong><br>
+							<i class="fas fa-user"></i> {{ evaluation.conducteur.nom_complet }}
+						</p>
+						<p><strong>Société</strong><br>
+							<i class="fas fa-building"></i> {{ evaluation.conducteur.salsocid.socnom }}
+						</p>
+						<p><strong>Site</strong><br>
+							<i class="fas fa-map-marker-alt"></i> {{ evaluation.conducteur.site.nom_commune }}
+						</p>
+					</div>
+					<div class="col-md-6">
+						<p><strong>Évaluateur</strong><br>
+							<i class="fas fa-user-tie"></i> {{ evaluation.evaluateur.nom_complet }}
+						</p>
+						<p><strong>Service</strong><br>
+							<i class="fas fa-users"></i> {{ evaluation.evaluateur.service.nom }}
+						</p>
+						<p><strong>Date</strong><br>
+							<i class="fas fa-calendar"></i> {{ evaluation.date_evaluation|date:"d/m/Y" }}
+						</p>
+					</div>
+				</div>
+				<hr>
+				<p class="mb-0"><strong>Description :</strong><br>
+					{{ evaluation.type_evaluation.description }}</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Statistiques avec score -->
+	<div class="col-md-4">
+		<div class="card">
+			<div class="card-header bg-success text-white">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-chart-line"></i>
+					Résultats
+				</h5>
+			</div>
+			<div class="card-body text-center">
+				<div class="mb-3">
+					{% if stats.score_percentage is not None %}
+					<span class="score-badge 
+                            {% if stats.score_percentage >= 80 %}score-excellent
+                            {% elif stats.score_percentage >= 65 %}score-good
+                            {% elif stats.score_percentage >= 50 %}score-average
+                            {% else %}score-poor{% endif %}">
+						{{ stats.score_percentage }}%
+					</span>
+					<p class="mb-2 mt-2"><strong>Score global</strong></p>
+					<p class="small  mb-3">
+						Moyenne arithmétique : {{ stats.moyenne|floatformat:1 }}/10
+					</p>
+					{% else %}
+					<span class="score-badge bg-secondary">
+						<i class="fas fa-minus"></i>
+					</span>
+					<p class="mb-2 mt-2"><strong>Pas de score</strong></p>
+					<p class="small  mb-3">Aucune note attribuée</p>
+					{% endif %}
+				</div>
+				<hr>
+				<div class="row text-center">
+					<div class="col-6">
+						<h5 class="text-primary">{{ stats.notes_attribuees }}</h5>
+						<small class="text-primary">Notes données</small>
+					</div>
+					<div class="col-6">
+						<h5 class="text-info">{{ stats.total_criteres }}</h5>
+						<small class="text-primary">Critères total</small>
+					</div>
+				</div>
+
+				{% if stats.score_percentage is not None %}
+				<hr>
+				<div class="small text-muted">
+					<i class="fas fa-info-circle me-1"></i>
+					Score = (Notes obtenues / Notes max) × 100
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Détail des notes -->
+<div class="row">
+	<div class="col-12">
+		<div class="card">
+			<div class="card-header bg-info text-white">
+				<h5 class="card-title mb-0">
+					<i class="fas fa-star"></i>
+					Détail des notes par critère
+				</h5>
+			</div>
+			<div class="card-body">
+				<div class="criteria-grid">
+					{% for note in notes %}
+					<div class="criteria-card">
+						<h3 class="criteria-score 
+                                {% if note.valeur >= 8 %}text-success
+                                {% elif note.valeur >= 6 %}text-info
+                                {% elif note.valeur >= 4 %}text-warning
+                                {% else %}text-danger{% endif %}">
+							Critère {{ note.critere.nom }}
+						</h3>
+						<div class="criteria-score 
+                                {% if note.valeur >= 8 %}text-success
+                                {% elif note.valeur >= 6 %}text-info
+                                {% elif note.valeur >= 4 %}text-warning
+                                {% else %}text-danger{% endif %}">
+							{% if note.valeur %}
+							{{ note.valeur }}/{{ note.critere.valeur_maxi }}
+
+							<!-- Barre de progression visuelle -->
+							<div class="progress mt-2" style="height: 8px;">
+								<div class="progress-bar 
+                                            {% if note.valeur >= 8 %}bg-success
+                                            {% elif note.valeur >= 6 %}bg-info
+                                            {% elif note.valeur >= 4 %}bg-warning
+                                            {% else %}bg-danger{% endif %}"
+									style="width: {% widthratio note.valeur note.critere.valeur_maxi 100 %}%"></div>
+							</div>
+
+							<!-- Pourcentage pour ce critère -->
+							<small class="text-muted d-block mt-1">
+								{% widthratio note.valeur note.critere.valeur_maxi 100 %}%
+							</small>
+							{% else %}
+							<span class="text-muted">Non noté</span>
+							{% endif %}
+						</div>
+						<small class="custom-muted">
+							Échelle: {{ note.critere.valeur_mini }}-{{ note.critere.valeur_maxi }}
+						</small>
+					</div>
+					{% empty %}
+					<div class="col-12">
+						<div class="alert alert-warning">
+							<i class="fas fa-exclamation-triangle"></i>
+							Aucune note enregistrée pour cette évaluation.
+						</div>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Actions -->
+<div class="row mt-4 no-print">
+	<div class="col-12">
+		<div class="d-flex justify-content-between">
+			<a href="{% url 'suivi_conducteurs:evaluation_list' %}" class="btn btn-secondary">
+				<i class="fas fa-arrow-left"></i> Retour à la liste
+			</a>
+			<div>
+				<a href="{% url 'suivi_conducteurs:create_evaluation' %}" class="btn btn-success">
+					<i class="fas fa-plus"></i> Nouvelle évaluation
+				</a>
+				<!-- <button onclick="window.print()" class="btn btn-outline-primary">
+									<i class="fas fa-print"></i> Imprimer
+								</button> -->
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- Footer pour l'impression -->
+<div class="row mt-5 d-none d-print-block">
+	<div class="col-12 text-center">
+		<hr>
+		<small class="text-muted">
+			Évaluation générée le {{ "now"|date:"d/m/Y à H:i" }} -
+			Système de suivi des conducteurs
+			{% if stats.score_percentage is not None %}
+			| Score global : {{ stats.score_percentage }}%
+			{% endif %}
+		</small>
+	</div>
+</div>
+{% endblock %}
