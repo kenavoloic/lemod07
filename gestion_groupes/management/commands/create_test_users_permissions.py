@@ -135,11 +135,17 @@ class Command(BaseCommand):
                         updated_users += 1
                         self.stdout.write(f'   ℹ️  Utilisateur {username} existe déjà')
                     
+                    # Créer ou récupérer le service
+                    service_obj, _ = Service.objects.get_or_create(
+                        nom=user_data['service'],
+                        defaults={'abreviation': user_data['service'][:3].upper()}
+                    )
+                    
                     # Créer ou mettre à jour le profil
                     profil, profil_created = ProfilUtilisateur.objects.get_or_create(
                         user=user,
                         defaults={
-                            'service': user_data['service'],
+                            'service': service_obj,
                             'poste': user_data['poste'],
                             'telephone': user_data.get('telephone', ''),
                             'actif': True,
@@ -148,7 +154,7 @@ class Command(BaseCommand):
                     
                     if not profil_created:
                         # Mettre à jour le profil existant
-                        profil.service = user_data['service']
+                        profil.service = service_obj
                         profil.poste = user_data['poste']
                         profil.telephone = user_data.get('telephone', '')
                         profil.actif = True
@@ -242,10 +248,14 @@ class Command(BaseCommand):
                 )
                 
                 # Créer le profil
+                service_admin, _ = Service.objects.get_or_create(
+                    nom='Administration',
+                    defaults={'abreviation': 'ADM'}
+                )
                 ProfilUtilisateur.objects.get_or_create(
                     user=super_user,
                     defaults={
-                        'service': 'Administration',
+                        'service': service_admin,
                         'poste': 'Administrateur système',
                         'telephone': '05.56.00.00.00',
                         'actif': True,
@@ -284,12 +294,11 @@ class Command(BaseCommand):
                 if service_created:
                     self.stdout.write(f'     🏢 Service {service_name} créé')
                 
-                # Créer l'évaluateur
+                # Créer l'évaluateur (le service vient du profil utilisateur)
                 evaluateur = Evaluateur.objects.create(
                     user=user,
                     nom=user.last_name or 'Nom',
-                    prenom=user.first_name or 'Prénom',
-                    service=service
+                    prenom=user.first_name or 'Prénom'
                 )
                 
                 self.stdout.write(f'     👨‍💼 Évaluateur créé pour {user.username} dans le service {service_name}')

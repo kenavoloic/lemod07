@@ -13,6 +13,10 @@ from .models import ProfilUtilisateur, GroupeEtendu, HistoriqueGroupes
 
 
 # LoginRequiredMiddleware protège automatiquement cette vue
+# Problème de blocage de l'interface avec ce middleware
+# dès que le problème sera résolu réutilisation car plus pratique
+# en terme de gestion des accès
+
 def dashboard_groupes(request):
     """Dashboard principal de la gestion des groupes"""
     

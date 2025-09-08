@@ -35,12 +35,18 @@ def dashboard(request):
             'conducteur', 'evaluateur', 'type_evaluation'
         ).order_by('-date_evaluation')[:5]
     
+    # Vérifier si l'utilisateur peut créer des évaluations (logique métier)
+    user_peut_evaluer = False
+    if hasattr(request.user, 'profil'):
+        user_peut_evaluer = request.user.profil.peut_evaluer()
+    
     context = {
         'total_conducteurs': total_conducteurs,
         'total_evaluations': total_evaluations,
         'evaluations_ce_mois': evaluations_ce_mois,
         'evaluations_recentes': evaluations_recentes,
         'user': request.user,
+        'user_peut_evaluer': user_peut_evaluer,
     }
     return render(request, 'suivi_conducteurs/dashboard.html', context)
 
@@ -51,14 +57,15 @@ def create_evaluation(request):
     conducteurs = Conducteur.objects.filter(salactif=True).select_related('salsocid', 'site')
     types_evaluation = TypologieEvaluation.objects.all()
 
-    # Filtrer les évaluateurs pour ne garder que ceux des groupes RH et Exploitation
-    evaluateurs = Evaluateur.objects.filter(
-        user__groups__name__in=['RH', 'Exploitation']
-    ).select_related('service', 'user').prefetch_related('user__groups__groupe_etendu').distinct()
-
+    # Seul l'utilisateur connecté peut être évaluateur s'il en a le droit
+    evaluateurs = []
     evaluateur_connecte = None
+    
     if hasattr(request.user, 'evaluateur'):
         evaluateur_connecte = request.user.evaluateur
+        # Vérifier si l'utilisateur connecté peut effectuer des évaluations
+        if evaluateur_connecte.peut_evaluer():
+            evaluateurs = [evaluateur_connecte]
         
 
     context = {
@@ -148,9 +155,10 @@ def submit_evaluation(request):
     conducteur_id = request.POST.get('conducteur')
     evaluateur_id = request.POST.get('evaluateur')
     type_evaluation_id = request.POST.get('type_evaluation')
-    date_evaluation = request.POST.get('date_evaluation')
+    # Force la date du jour au lieu de récupérer depuis le POST
+    date_evaluation = date.today()
     
-    if not all([conducteur_id, evaluateur_id, type_evaluation_id, date_evaluation]):
+    if not all([conducteur_id, evaluateur_id, type_evaluation_id]):
         messages.error(request, "Tous les champs obligatoires doivent être remplis.")
         return redirect('suivi_conducteurs:create_evaluation')
     

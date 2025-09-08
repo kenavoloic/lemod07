@@ -1,3 +1,4 @@
+{% load custom_filters %}
 <!-- templates/includes/navbar.html - Version corrigée avec vrais liens -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
     <div class="container-fluid">
@@ -36,7 +37,8 @@
                                 Toutes les évaluations
                             </a>
                         </li>
-                        {% if perms.suivi_conducteurs.add_evaluation %}
+                        {% user_peut_evaluer user as peut_evaluer %}
+                        {% if peut_evaluer %}
                         <li>
                             <a class="dropdown-item" href="{% url 'suivi_conducteurs:create_evaluation' %}">
                                 <i class="fas fa-plus-circle me-2"></i>

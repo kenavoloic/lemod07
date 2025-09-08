@@ -16,7 +16,6 @@ def home_redirect(request):
 urlpatterns = [
     path('admin/', admin.site.urls),
 
-
     path('', home_redirect, name='home'),
 
     # URLs d'authentification avec imports corrects
@@ -26,12 +25,8 @@ urlpatterns = [
     path('change-password/', auth_views.change_password, name='change_password'),
     
     # URLs des applications
-    #path('', include('suivi_conducteurs.urls')),
-    #path('groupes/', include('gestion_groupes.urls')),
-    # Dashboard protégé
     path('dashboard/', include('suivi_conducteurs.urls')),
     path('groupes/', include('gestion_groupes.urls')),    
-
     path('api/dashboard-stats/', auth_views.dashboard_stats, name='dashboard_stats'),
 ]
 

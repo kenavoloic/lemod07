@@ -153,8 +153,11 @@ class ConducteurAdmin(admin.ModelAdmin):
 @admin.register(Evaluateur)
 class EvaluateurAdmin(admin.ModelAdmin):
     list_display = ['nom_complet', 'service']
-    list_filter = ['service']
-    search_fields = ['nom', 'prenom', 'service__nom']
+    #list_display = ['nom_complet', 'user']    
+    #list_filter = ['service']
+    list_filter = []    
+    #search_fields = ['nom', 'prenom', 'service__nom']
+    search_fields = ['nom', 'prenom']
     ordering = ['nom', 'prenom']
     
     def nom_complet(self, obj):
@@ -242,7 +245,8 @@ class NoteInline(admin.TabularInline):
 @admin.register(Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
     list_display = ['date_evaluation', 'conducteur', 'evaluateur', 'type_evaluation', 'nombre_notes', 'completude']
-    list_filter = ['type_evaluation', 'date_evaluation', 'evaluateur__service', 'date_creation']
+    #list_filter = ['type_evaluation', 'date_evaluation', 'evaluateur__service', 'date_creation']
+    list_filter = ['type_evaluation', 'date_evaluation',  'date_creation']    
     search_fields = ['conducteur__salnom', 'conducteur__salnom2', 'evaluateur__nom', 'evaluateur__prenom']
     ordering = ['-date_evaluation']
     readonly_fields = ['date_creation', 'nombre_notes', 'completude']
@@ -297,7 +301,7 @@ class EvaluationAdmin(admin.ModelAdmin):
 
     def get_queryset(self, request):
         return super().get_queryset(request).select_related(
-            'conducteur', 'evaluateur', 'type_evaluation', 'evaluateur__service'
+            'conducteur', 'evaluateur', 'type_evaluation', 'evaluateur__user__profil__service'
         )
 
 

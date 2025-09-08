@@ -1,3 +1,4 @@
+# gestion_groupes/admin.py
 from django.contrib import admin
 from django.contrib.auth.models import User, Group
 from django.contrib.auth.admin import UserAdmin, GroupAdmin
@@ -5,7 +6,6 @@ from django.utils.html import format_html
 from django.urls import reverse
 from django.utils.safestring import mark_safe
 from .models import ProfilUtilisateur, GroupeEtendu, HistoriqueGroupes
-
 
 # Configuration pour ProfilUtilisateur
 class ProfilUtilisateurInline(admin.StackedInline):
@@ -52,7 +52,6 @@ class ProfilUtilisateurAdmin(admin.ModelAdmin):
     user_username.short_description = 'Username'
     user_username.admin_order_field = 'user__username'
 
-
 # Configuration pour GroupeEtendu
 class GroupeEtenduInline(admin.StackedInline):
     model = GroupeEtendu
@@ -64,7 +63,6 @@ class GroupeEtenduInline(admin.StackedInline):
             'fields': ('description', 'couleur', 'niveau_acces', 'actif')
         }),
     )
-
 
 @admin.register(GroupeEtendu)
 class GroupeEtenduAdmin(admin.ModelAdmin):
@@ -94,13 +92,20 @@ class GroupeEtenduAdmin(admin.ModelAdmin):
         return obj.group.name
     group_name.short_description = 'Nom du groupe'
     group_name.admin_order_field = 'group__name'
-    
+
     def couleur_display(self, obj):
-        return format_html(
-            '<span style="color: {}; font-weight: bold;">● {}</span>',
-            obj.couleur,
-            obj.couleur
-        )
+        try:
+            if obj.groupe_etendu and hasattr(obj.groupe_etendu, 'couleur'):
+                couleur = obj.groupe_etendu.couleur
+                return format_html(
+                    '<span style="color: {}; font-weight: bold;">● {}</span>',
+                    couleur,
+                    couleur
+                )
+            return format_html('<span>-</span>')
+        except Exception:  # Optionnel : attrape d'autres erreurs inattendues
+            return format_html('<span>-</span>')
+        
     couleur_display.short_description = 'Couleur'
 
 

@@ -1,31 +1,42 @@
+#gestion_groupes/models.py
 from django.db import models
 from django.contrib.auth.models import User, Group, Permission
 from django.core.exceptions import ValidationError
 from django.utils import timezone
-
+from gestion_groupes.config import get_groupes_evaluateurs
 
 class ProfilUtilisateur(models.Model):
     """Extension du modèle User avec des informations supplémentaires"""
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profil')
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profil', verbose_name="Utilisateur")
+    nom = models.CharField(max_length=255, blank=True, verbose_name="Nom", help_text="Nom de famille")
+    prenom = models.CharField(max_length=255, blank=True, verbose_name="Prénom", help_text="Prénom")
     telephone = models.CharField(max_length=15, blank=True, verbose_name="Téléphone")
-    service = models.CharField(max_length=100, blank=True, verbose_name="Service")
+    service = models.ForeignKey(
+        'suivi_conducteurs.Service',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Service"
+    )
     poste = models.CharField(max_length=100, blank=True, verbose_name="Poste")
     date_embauche = models.DateField(null=True, blank=True, verbose_name="Date d'embauche")
     actif = models.BooleanField(default=True, verbose_name="Compte actif")
     date_creation = models.DateTimeField(auto_now_add=True)
     date_modification = models.DateTimeField(auto_now=True)
     
-    class Meta:
-        verbose_name = "Profil utilisateur"
-        verbose_name_plural = "Profils utilisateurs"
-        ordering = ['user__last_name', 'user__first_name']
-    
     def __str__(self):
         return f"{self.user.get_full_name()} ({self.user.username})"
+
+    def peut_evaluer(self):
+        groupes_autorises = set(get_groupes_evaluateurs()) 
+        return any(groupe.name in groupes_autorises for groupe in self.user.groups.all())
     
     @property
     def nom_complet(self):
-        return self.user.get_full_name() or self.user.username
+        """retourne le nom complet en utilisant les données de ProfilUtilisateur"""
+        nom = self.nom if self.nom else self.user.last_name
+        prenom = self.prenom if self.prenom else self.user.first_name
+        return f"{nom} {prenom}"
     
     @property
     def groupes_utilisateur(self):
@@ -34,7 +45,24 @@ class ProfilUtilisateur(models.Model):
     def clean(self):
         if self.telephone and not self.telephone.replace(' ', '').replace('-', '').replace('.', '').isdigit():
             raise ValidationError({'telephone': 'Le numéro de téléphone ne doit contenir que des chiffres, espaces, tirets ou points.'})
+        if not self.nom and not self.user.last_name:
+            raise ValidationError({'nom': "Un nom de famille est requis."})
+        if not self.prenom and not self.user.first_name:
+            raise ValidationError({'prenom': "Un prénom est requis."})
 
+    def save(self, *args, **kwargs):
+        """ Sauvegarde le profil et remplit automatiquement les nom et prenom si ceux-ci sont vides"""
+        if not self.nom and self.user.last_name:
+            self.nom = self.user.last_name
+        if not self.prenom and self.user.first_name:
+            self.prenom = self.user.first_name
+        super().save(*args, **kwargs)
+
+    class Meta:
+        verbose_name = "Profil utilisateur"
+        verbose_name_plural = "Profils utilisateurs"
+        ordering = ['user__last_name', 'user__first_name']
+    
 
 class GroupeEtendu(models.Model):
     """Extension du modèle Group avec des informations supplémentaires"""

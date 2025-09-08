@@ -10,11 +10,16 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     from .models import ProfilUtilisateur
     
     if created:
+        from suivi_conducteurs.models import Service
+        service_none, _ = Service.objects.get_or_create(
+            nom='Non défini',
+            defaults={'abreviation': 'ND'}
+        )
         ProfilUtilisateur.objects.get_or_create(
             user=instance,
             defaults={
                 'actif': instance.is_active,
-                'service': 'Non défini',
+                'service': service_none,
                 'poste': 'Non défini',
             }
         )
@@ -26,10 +31,15 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
             profil.save()
         except ProfilUtilisateur.DoesNotExist:
             # Créer le profil s'il n'existe pas
+            from suivi_conducteurs.models import Service
+            service_none, _ = Service.objects.get_or_create(
+                nom='Non défini',
+                defaults={'abreviation': 'ND'}
+            )
             ProfilUtilisateur.objects.create(
                 user=instance,
                 actif=instance.is_active,
-                service='Non défini',
+                service=service_none,
                 poste='Non défini',
             )
 

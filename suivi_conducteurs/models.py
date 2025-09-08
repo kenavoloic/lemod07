@@ -1,6 +1,93 @@
+# suivi_conducteurs/models.py
 from django.db import models, transaction
 from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+from django.contrib.auth.models import User
+from gestion_groupes.config import get_groupes_evaluateurs
+
+# ==============================================
+# MANAGERS DÉFINIS DANS LE MÊME FICHIER
+# ==============================================
+
+class ConducteurManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'salsocid',
+            'site'
+        )
+    
+    def actifs(self):
+        return self.filter(salactif=True)
+    
+    def avec_derniere_evaluation(self):
+        """Conducteurs avec leur dernière évaluation"""
+        return self.get_queryset().prefetch_related(
+            models.Prefetch(
+                'evaluation_set',
+                # Pas besoin d'import, Evaluation est défini après
+                queryset=None,  # Sera résolu à l'exécution
+                to_attr='evaluations_recentes'
+            )
+        )
+
+class EvaluateurManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'user__profil__service'
+        ).prefetch_related(
+            'user__groups'
+        )
+    
+    def pouvant_evaluer(self):
+        """Évaluateurs appartenant aux groupes autorisés"""
+        
+        from gestion_groupes.config import get_groupes_evaluateurs
+        
+        groupes_autorises = get_groupes_evaluateurs()
+        return self.filter(
+            user__groups__name__in=groupes_autorises
+        ).distinct()
+
+class EvaluationManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'conducteur__salsocid',
+            'conducteur__site',
+            'evaluateur__user__profil',
+            'type_evaluation'
+        )
+    
+    def avec_notes_completes(self):
+        """Évaluations avec toutes leurs notes chargées"""
+        return self.get_queryset().prefetch_related(
+            models.Prefetch(
+                'notes',
+                # Note sera défini après, pas de problème
+                queryset=None,  # Sera résolu à l'exécution
+                to_attr='notes_completes'
+            )
+        )
+    
+    def par_periode(self, date_debut, date_fin):
+        return self.filter(
+            date_evaluation__range=[date_debut, date_fin]
+        )
+
+class NoteManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            'evaluation__conducteur',
+            'evaluation__evaluateur',
+            'critere'
+        )
+    
+    def completes(self):
+        """Notes avec une valeur attribuée"""
+        return self.filter(valeur__isnull=False)
+
+# ==============================================
+# MODÈLES
+# ==============================================
 
 class Site(models.Model):
     """Site auquel est rattaché un conducteur"""
@@ -96,6 +183,9 @@ class Conducteur(models.Model):
     date_naissance = models.DateField(null=True, blank=True, verbose_name="Date de naissance")
     date_creation = models.DateTimeField(auto_now_add=True)
 
+    # Manager sans import circulaire
+    objects = ConducteurManager()
+
     def clean(self):
         if self.salnom:
             self.salnom = self.salnom.strip()
@@ -111,7 +201,18 @@ class Conducteur(models.Model):
 
     def get_last_evaluation_score(self):
         """Retourne le score de la dernière évaluation de ce conducteur"""
-        derniere_evaluation = self.evaluation_set.order_by('-date_evaluation').first()
+        # Si les évaluations sont déjà préchargées
+        if hasattr(self, 'evaluations_recentes') and self.evaluations_recentes:
+            derniere_evaluation = self.evaluations_recentes[0]
+            return derniere_evaluation.calculate_score()
+        
+        # Sinon, requête optimisée
+        derniere_evaluation = self.evaluation_set.select_related(
+            'type_evaluation'
+        ).prefetch_related(
+            'notes__critere'
+        ).order_by('-date_evaluation').first()
+        
         if derniere_evaluation:
             return derniere_evaluation.calculate_score()
         return None
@@ -125,7 +226,6 @@ class Evaluateur(models.Model):
     """Utilisateur effectuant l'évaluation d'un conducteur"""
     nom = models.CharField(max_length=255, verbose_name="nom")
     prenom = models.CharField(max_length=255, verbose_name="prénom")
-    service = models.ForeignKey(Service, on_delete=models.CASCADE, verbose_name="Service")
     user = models.OneToOneField(
         'auth.User', 
         on_delete=models.CASCADE, 
@@ -135,41 +235,65 @@ class Evaluateur(models.Model):
         help_text="Compte utilisateur Django associé à cet évaluateur"
     )
 
-    def __str__(self):
-            return f"{self.service.nom} {self.nom} {self.prenom}"
+    # Manager sans import circulaire
+    objects = EvaluateurManager()
 
+    def __str__(self):
+        nom_service = self.service if self.service else "Service non défini"
+        return f"{nom_service} : {self.nom} {self.prenom}"
+
+    @property
+    def service(self):
+        """Au lieu de le gérer depuis ce modèle. Les services sont déterminés au niveau de gestion_groupes/models.py and le profilUtilisateur """
+        if hasattr(self, 'user') and self.user and hasattr(self.user, 'profil'):
+            return self.user.profil.service
+        return None
+    
     @property
     def nom_complet(self):
         return f"{self.prenom} {self.nom}"
 
-    def can_evaluate(self):
-        """Vérifie si cet évaluateur peut évaluer (RH ou Exploitation)"""
-        services_autorises = ['Ressources Humaines', 'Exploitation']
-        return self.service.nom in services_autorises
+    def peut_evaluer(self):
+        """Version optimisée avec cache"""
+        if not hasattr(self, '_peut_evaluer_cache'):
+            if hasattr(self, 'user') and self.user and hasattr(self.user, 'profil'):
+                self._peut_evaluer_cache = self.user.profil.peut_evaluer()
+            else:
+                self._peut_evaluer_cache = False
+        return self._peut_evaluer_cache
     
     def get_user_groups(self):
         """Retourne les groupes de l'utilisateur associé"""
-        if self.user:
-            return self.user.groups.values_list('name', flat=True)
+        if hasattr(self, 'user') and self.user:
+            # Si les groupes sont préchargés, on les utilise
+            if hasattr(self.user, '_prefetched_objects_cache') and 'groups' in self.user._prefetched_objects_cache:
+                return [group.name for group in self.user.groups.all()]
+            return list(self.user.groups.values_list('name', flat=True))
         return []
     
     def clean(self):
-        if self.nom:
+        if hasattr(self, 'nom') and self.nom:
             self.nom = self.nom.strip()
-        if self.prenom:
+        if hasattr(self, 'prenom') and self.prenom:
             self.prenom = self.prenom.strip()
 
-        if self.service_id and not self.can_evaluate():
-            raise ValidationError({
-                'service': f"Le service '{self.service.nom}' n'est pas autorisé à effectuer des évaluations."
-            })
-        
+        if self.user and not self.peut_evaluer():
+            raise ValidationError(
+                {'user': f"{self.nom_complet} n'appartient pas à un groupe pouvant faire des évaluations de conducteur."}
+            )
+
+    def save(self, *args, **kwargs):
+        if hasattr(self, 'user') and self.user and hasattr(self.user, 'profil'):
+            if not self.user.profil.nom and self.nom:
+                self.user.profil.nom = self.nom
+            if not self.user.profil.prenom and self.prenom:
+                self.user.profil.prenom = self.prenom
+        super().save(*args, **kwargs)
 
     class Meta:
         verbose_name = "Évaluateur"
         verbose_name_plural = "Évaluateurs"
         ordering = ['nom', 'prenom']            
-            
 
 class TypologieEvaluation(models.Model):
     """ Types d'évaluation : avant le recrutement, évaluation de la conduite, évaluation du comportement"""
@@ -183,12 +307,10 @@ class TypologieEvaluation(models.Model):
     class Meta:
         verbose_name="Type d'évaluation"
         verbose_name_plural = "Types d'évaluation"
-    
 
 class CritereEvaluation(models.Model):
     """Critères d'évaluation d'un conducteur"""
     nom = models.CharField(max_length=255)
-    # numéro d'ordre : pour respecter l'ordre de présentation des critères
     numero_ordre = models.PositiveIntegerField(unique=True, editable=False, blank=True, null=True)
     type_evaluation = models.ForeignKey(TypologieEvaluation, on_delete=models.CASCADE)
     valeur_mini = models.PositiveIntegerField()
@@ -205,9 +327,8 @@ class CritereEvaluation(models.Model):
                 dernier_numero_ordre = CritereEvaluation.objects.select_for_update().aggregate(
                     max_numero_ordre = models.Max('numero_ordre')
                     )['max_numero_ordre']
-                self.numero_ordre = (dernier_numero_ordre or 0) + 1 # si dernier_numero_ordre = None => 0 
+                self.numero_ordre = (dernier_numero_ordre or 0) + 1
         super().save(*args, **kwargs)
-    
 
     def clean(self):
         if self.nom:
@@ -231,6 +352,9 @@ class Evaluation(models.Model):
     type_evaluation = models.ForeignKey(TypologieEvaluation, on_delete=models.CASCADE, verbose_name="Type d'évaluation")
     date_creation = models.DateTimeField(auto_now_add=True)
 
+    # Manager sans import circulaire
+    objects = EvaluationManager()
+
     def __str__(self):
         return f"{self.date_evaluation} - {self.conducteur} par {self.evaluateur} ({self.type_evaluation})"
 
@@ -238,8 +362,7 @@ class Evaluation(models.Model):
         if not self.date_evaluation:
             raise ValidationError({'date_evaluation': "Une date d'évaluation est requise."})
         
-        # Validation : vérifier que toutes les notes correspondent au type d'évaluation
-        if self.pk:  # Si l'objet existe déjà (modification)
+        if self.pk:
             notes_incompatibles = self.notes.exclude(critere__type_evaluation=self.type_evaluation)
             if notes_incompatibles.exists():
                 raise ValidationError({
@@ -247,49 +370,52 @@ class Evaluation(models.Model):
                 })
 
     def calculate_score(self):
-        """
-        Calcule le score de l'évaluation en pourcentage
-        Score = 100 * (somme des notes / somme des valeurs maximales)
-        """
-        # Récupérer toutes les notes de l'évaluation avec valeur non nulle
-        notes = self.notes.filter(
-            valeur__isnull=False,
-            critere__actif=True
-        ).select_related('critere')
-    
-        if not notes.exists():
+        """Version optimisée du calcul de score"""
+        # Utiliser les notes préchargées si disponibles
+        if hasattr(self, '_prefetched_objects_cache') and 'notes' in self._prefetched_objects_cache:
+            notes = [note for note in self.notes.all() 
+                    if note.valeur is not None and note.critere.actif]
+        else:
+            notes = self.notes.select_related('critere').filter(
+                valeur__isnull=False,
+                critere__actif=True
+            )
+        
+        if not notes:
             return None
-    
-        total_notes = 0
-        total_max = 0
-    
-        for note in notes:
-            total_notes += note.valeur
-            total_max += note.critere.valeur_maxi
-    
+        
+        total_notes = sum(note.valeur for note in notes)
+        total_max = sum(note.critere.valeur_maxi for note in notes)
+        
         if total_max == 0:
             return None
-    
+        
         score = (total_notes / total_max) * 100
         return round(score, 1)
 
     def get_completion_status(self):
-        """Retourne le statut de completion de l'évaluation"""
-        criteres_actifs = CritereEvaluation.objects.filter(
-            type_evaluation=self.type_evaluation,
-            actif=True
-        ).count()
+        """Version optimisée du statut de completion avec cache"""
+        if not hasattr(self, '_completion_status_cache'):
+            criteres_actifs = CritereEvaluation.objects.filter(
+                type_evaluation=self.type_evaluation,
+                actif=True
+            ).count()
+            
+            if hasattr(self, '_prefetched_objects_cache') and 'notes' in self._prefetched_objects_cache:
+                notes_completes = len([n for n in self.notes.all() if n.valeur is not None])
+            else:
+                notes_completes = self.notes.filter(valeur__isnull=False).count()
+            
+            if criteres_actifs == 0:
+                status = "Aucun critère actif"
+            elif notes_completes == criteres_actifs:
+                status = f"✅ Complet ({notes_completes}/{criteres_actifs})"
+            else:
+                status = f"⚠️ Incomplet ({notes_completes}/{criteres_actifs})"
+            
+            self._completion_status_cache = status
         
-        notes_completes = self.notes.filter(valeur__isnull=False).count()
-        
-        if criteres_actifs == 0:
-            return "Aucun critère actif"
-        
-        if notes_completes == criteres_actifs:
-            return f"✅ Complet ({notes_completes}/{criteres_actifs})"
-        else:
-            return f"⚠️ Incomplet ({notes_completes}/{criteres_actifs})"
-
+        return self._completion_status_cache
             
     class Meta:
         verbose_name = "Évaluation"
@@ -309,18 +435,19 @@ class Note(models.Model):
     valeur = models.PositiveIntegerField(null=True, blank=True, help_text="Note attribuée")
     date_creation = models.DateTimeField(auto_now_add=True)
 
+    # Manager sans import circulaire
+    objects = NoteManager()
+
     def __str__(self):
         return f"{self.evaluation.conducteur} - {self.critere.nom}: {self.valeur or 'Non noté'}"
 
     def clean(self):
-        # Validation de la valeur selon les bornes du critère
         if self.valeur is not None:
             if self.valeur < self.critere.valeur_mini or self.valeur > self.critere.valeur_maxi:
                 raise ValidationError({
                     'valeur': f'La note doit être comprise entre {self.critere.valeur_mini} et {self.critere.valeur_maxi}.'
                 })
         
-        # Validation de cohérence : le critère doit correspondre au type d'évaluation
         if self.evaluation_id and self.critere_id:
             if self.critere.type_evaluation != self.evaluation.type_evaluation:
                 raise ValidationError({
@@ -341,7 +468,7 @@ class Note(models.Model):
 
     @property
     def type_evaluation(self):
-        return self.evaluation.type_evaluation  # Plus simple maintenant !
+        return self.evaluation.type_evaluation
     
     class Meta:
         verbose_name = "Note"
@@ -351,3 +478,38 @@ class Note(models.Model):
         indexes = [
             models.Index(fields=['evaluation', 'critere']),
         ]
+
+# ==============================================
+# POST-TRAITEMENT DES MANAGERS 
+# ==============================================
+
+# Maintenant que tous les modèles sont définis, on peut finaliser les managers
+def _finalize_managers():
+    """Finalise les managers avec les bonnes références"""
+    
+    # Mise à jour du ConducteurManager
+    ConducteurManager.avec_derniere_evaluation = lambda self: self.get_queryset().prefetch_related(
+        models.Prefetch(
+            'evaluation_set',
+            queryset=Evaluation.objects.select_related(
+                'evaluateur__user__profil',
+                'type_evaluation'
+            ).order_by('-date_evaluation'),
+            to_attr='evaluations_recentes'
+        )
+    )
+    
+    # Mise à jour de l'EvaluationManager
+    EvaluationManager.avec_notes_completes = lambda self: self.get_queryset().prefetch_related(
+        models.Prefetch(
+            'notes',
+            queryset=Note.objects.select_related('critere').filter(
+                valeur__isnull=False,
+                critere__actif=True
+            ).order_by('critere__numero_ordre'),
+            to_attr='notes_completes'
+        )
+    )
+
+# Appel automatique à la fin du module
+_finalize_managers()

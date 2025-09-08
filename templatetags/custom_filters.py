@@ -25,3 +25,10 @@ def date_actuelle_formatee():
     date_formatee = envoi.strftime("%A %d %B %Y")
     date_formatee = date_formatee[0].upper() + date_formatee[1:]
     return date_formatee
+
+@register.simple_tag
+def user_peut_evaluer(user):
+    """Vérifie si un utilisateur peut créer des évaluations selon la logique métier"""
+    if hasattr(user, 'profil') and user.profil:
+        return user.profil.peut_evaluer()
+    return False
