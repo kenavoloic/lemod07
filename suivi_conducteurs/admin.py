@@ -244,12 +244,14 @@ class NoteInline(admin.TabularInline):
 
 @admin.register(Evaluation)
 class EvaluationAdmin(admin.ModelAdmin):
-    list_display = ['date_evaluation', 'conducteur', 'evaluateur', 'type_evaluation', 'nombre_notes', 'completude']
+    #list_display = ['date_evaluation', 'conducteur', 'evaluateur', 'type_evaluation', 'nombre_notes', 'completude']
+    list_display = ['date_evaluation', 'conducteur', 'evaluateur', 'type_evaluation', 'nombre_notes']    
     #list_filter = ['type_evaluation', 'date_evaluation', 'evaluateur__service', 'date_creation']
     list_filter = ['type_evaluation', 'date_evaluation',  'date_creation']    
     search_fields = ['conducteur__salnom', 'conducteur__salnom2', 'evaluateur__nom', 'evaluateur__prenom']
     ordering = ['-date_evaluation']
-    readonly_fields = ['date_creation', 'nombre_notes', 'completude']
+    #readonly_fields = ['date_creation', 'nombre_notes', 'completude']
+    readonly_fields = ['date_creation', 'nombre_notes']
     inlines = [NoteInline]
     
     fieldsets = (
@@ -260,7 +262,8 @@ class EvaluationAdmin(admin.ModelAdmin):
             'fields': ('conducteur', 'evaluateur')
         }),
         ('Statistiques', {
-            'fields': ('nombre_notes', 'completude'),
+            # 'fields': ('nombre_notes', 'completude'),
+            'fields': ('nombre_notes',),
             'classes': ('collapse',)
         }),
         ('Informations système', {

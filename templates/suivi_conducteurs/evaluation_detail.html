@@ -107,7 +107,7 @@
 					</div>
 					<div class="col-6">
 						<h5 class="text-info">{{ stats.total_criteres }}</h5>
-						<small class="text-primary">Critères total</small>
+						<small class="text-primary">Critères au total</small>
 					</div>
 				</div>
 
@@ -142,7 +142,8 @@
                                 {% elif note.valeur >= 6 %}text-info
                                 {% elif note.valeur >= 4 %}text-warning
                                 {% else %}text-danger{% endif %}">
-							Critère {{ note.critere.nom }}
+						<!-- Critère -->
+						  {{ note.critere.nom }}
 						</h3>
 						<div class="criteria-score 
                                 {% if note.valeur >= 8 %}text-success

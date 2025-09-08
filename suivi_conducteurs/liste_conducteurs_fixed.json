@@ -1,0 +1,451 @@
+[
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 1,
+    "fields": {
+      "salnom": "Martin",
+      "salnom2": "Pierre",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 2,
+    "fields": {
+      "salnom": "Dubois",
+      "salnom2": "Jean",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1978-07-22",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 3,
+    "fields": {
+      "salnom": "Bernard",
+      "salnom2": "Michel",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1982-11-08",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 4,
+    "fields": {
+      "salnom": "Petit",
+      "salnom2": "Alain",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1990-01-12",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 5,
+    "fields": {
+      "salnom": "Robert",
+      "salnom2": "François",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1975-09-30",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 6,
+    "fields": {
+      "salnom": "Richard",
+      "salnom2": "Philippe",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1988-05-18",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 7,
+    "fields": {
+      "salnom": "Durand",
+      "salnom2": "Antoine",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1983-12-04",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 8,
+    "fields": {
+      "salnom": "Moreau",
+      "salnom2": "Stéphane",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1987-06-25",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 9,
+    "fields": {
+      "salnom": "Simon",
+      "salnom2": "Christophe",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1981-04-14",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 10,
+    "fields": {
+      "salnom": "Laurent",
+      "salnom2": "Thierry",
+      "salsocid": 1,
+      "salactif": true,
+      "site": 1,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1979-10-07",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 11,
+    "fields": {
+      "salnom": "Garcia",
+      "salnom2": "Carlos",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1986-02-20",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 12,
+    "fields": {
+      "salnom": "Rodriguez",
+      "salnom2": "Manuel",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1984-08-16",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 13,
+    "fields": {
+      "salnom": "Martinez",
+      "salnom2": "José",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1977-12-28",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 14,
+    "fields": {
+      "salnom": "Lopez",
+      "salnom2": "Miguel",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1991-03-09",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 15,
+    "fields": {
+      "salnom": "Gonzalez",
+      "salnom2": "Diego",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1989-07-13",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 16,
+    "fields": {
+      "salnom": "Wilson",
+      "salnom2": "David",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1980-11-22",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 17,
+    "fields": {
+      "salnom": "Anderson",
+      "salnom2": "James",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1985-01-17",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 18,
+    "fields": {
+      "salnom": "Taylor",
+      "salnom2": "Robert",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1976-09-05",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 19,
+    "fields": {
+      "salnom": "Brown",
+      "salnom2": "Michael",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1992-04-11",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 20,
+    "fields": {
+      "salnom": "Davis",
+      "salnom2": "William",
+      "salsocid": 2,
+      "salactif": true,
+      "site": 2,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1983-06-27",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 21,
+    "fields": {
+      "salnom": "Leroy",
+      "salnom2": "Pascal",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1974-05-03",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 22,
+    "fields": {
+      "salnom": "Roux",
+      "salnom2": "Frédéric",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1987-09-19",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 23,
+    "fields": {
+      "salnom": "Vincent",
+      "salnom2": "Olivier",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1981-02-26",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 24,
+    "fields": {
+      "salnom": "Fournier",
+      "salnom2": "Yves",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1990-12-01",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 25,
+    "fields": {
+      "salnom": "Girard",
+      "salnom2": "Patrice",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1978-08-24",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 26,
+    "fields": {
+      "salnom": "Bonnet",
+      "salnom2": "Gérard",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1985-04-06",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 27,
+    "fields": {
+      "salnom": "Dupont",
+      "salnom2": "Serge",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1982-10-15",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 28,
+    "fields": {
+      "salnom": "Lambert",
+      "salnom2": "Bruno",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": true,
+      "sous_traitant_p": false,
+      "date_naissance": "1988-06-08",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 29,
+    "fields": {
+      "salnom": "Fontaine",
+      "salnom2": "Claude",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": false,
+      "date_naissance": "1979-01-21",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  },
+  {
+    "model": "suivi_conducteurs.conducteur",
+    "pk": 30,
+    "fields": {
+      "salnom": "Rousseau",
+      "salnom2": "Éric",
+      "salsocid": 3,
+      "salactif": true,
+      "site": 3,
+      "interim_p": false,
+      "sous_traitant_p": true,
+      "date_naissance": "1986-11-12",
+      "date_creation": "2025-09-07T23:17:14.645124"
+    }
+  }
+]

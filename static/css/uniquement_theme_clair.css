@@ -225,12 +225,46 @@ main {
     width: 100%;
 }
 
-.alert {
+.messages-container .alert {
     border: none;
     border-radius: var(--border-radius-lg);
     box-shadow: var(--shadow-md);
     margin-bottom: var(--spacing-sm);
     animation: slideInRight 0.3s ease-out;
+    font-weight: 500;
+    border-left: 4px solid;
+}
+
+/* Couleurs spécifiques pour les messages toast */
+.messages-container .alert-success {
+    background-color: #d1e7dd;
+    border-left-color: var(--success-color);
+    color: #0f5132;
+}
+
+.messages-container .alert-danger,
+.messages-container .alert-error {
+    background-color: #f8d7da;
+    border-left-color: var(--danger-color);
+    color: #721c24;
+}
+
+.messages-container .alert-warning {
+    background-color: #fff3cd;
+    border-left-color: var(--warning-color);
+    color: #664d03;
+}
+
+.messages-container .alert-info {
+    background-color: #d1ecf1;
+    border-left-color: var(--info-color);
+    color: #055160;
+}
+
+.messages-container .alert-primary {
+    background-color: #cff4fc;
+    border-left-color: var(--primary-color);
+    color: #084298;
 }
 
 .alert .fas {
@@ -1028,12 +1062,13 @@ main {
     padding: 0 15px;
 }
 
-/* Grille des critères responsive */
+/* Grille des critères responsive - ordre par numéro croissant */
 .criteria-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-top: 1.5rem;
+    grid-auto-flow: row;
 }
 
 /* Cartes de critères avec design moderne */
@@ -1813,6 +1848,7 @@ main {
     .criteria-grid {
         grid-template-columns: 1fr;
         gap: var(--spacing-md);
+        grid-auto-flow: row;
     }
     
     .criteria-card {
@@ -1892,6 +1928,7 @@ main {
 @media (min-width: 576px) and (max-width: 767.98px) {
     .criteria-grid {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-auto-flow: row;
     }
     
     .filters-container {
@@ -1912,6 +1949,7 @@ main {
 @media (min-width: 768px) and (max-width: 991.98px) {
     .criteria-grid {
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        grid-auto-flow: row;
     }
     
     .quick-actions {
@@ -1945,6 +1983,7 @@ main {
 @media (min-width: 992px) and (max-width: 1199.98px) {
     .criteria-grid {
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-auto-flow: row;
     }
     
     .stats-card .card-body {
@@ -1964,6 +2003,7 @@ main {
 @media (min-width: 1200px) {
     .criteria-grid {
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        grid-auto-flow: row;
     }
     
     .container-fluid {
@@ -2296,33 +2336,136 @@ main {
 .alert {
     border: none;
     border-left: 4px solid;
-    background: white;
     color: var(--bs-body-color);
+    padding: 1rem 1.25rem;
+    margin-bottom: var(--spacing-md);
+    border-radius: var(--border-radius-lg);
 }
 
 .alert-primary {
     border-left-color: var(--primary-color);
-    background: rgba(var(--primary-rgb), 0.1);
+    background-color: rgba(var(--primary-rgb), 0.1);
+    color: #084298;
 }
 
 .alert-success {
     border-left-color: var(--success-color);
-    background: rgba(var(--success-rgb), 0.1);
+    background-color: #d1e7dd;
+    color: #0f5132;
 }
 
 .alert-info {
     border-left-color: var(--info-color);
-    background: rgba(var(--info-rgb), 0.1);
+    background-color: #d1ecf1;
+    color: #055160;
 }
 
 .alert-warning {
     border-left-color: var(--warning-color);
-    background: rgba(var(--warning-rgb), 0.1);
+    background-color: #fff3cd;
+    color: #664d03;
 }
 
-.alert-danger {
+.alert-danger,
+.alert-error {
     border-left-color: var(--danger-color);
-    background: rgba(var(--danger-rgb), 0.1);
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Priorité haute pour les messages système */
+.alert.alert-success {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+}
+
+.alert.alert-danger,
+.alert.alert-error {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+}
+
+.alert.alert-warning {
+    background-color: #fff3cd !important;
+    color: #664d03 !important;
+}
+
+.alert.alert-info {
+    background-color: #d1ecf1 !important;
+    color: #055160 !important;
+}
+
+/* Correction des messages JavaScript avec Bootstrap toast */
+.toast.text-bg-success {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+    border-left: 4px solid var(--success-color);
+}
+
+.toast.text-bg-danger,
+.toast.text-bg-error {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+    border-left: 4px solid var(--danger-color);
+}
+
+.toast.text-bg-warning {
+    background-color: #fff3cd !important;
+    color: #664d03 !important;
+    border-left: 4px solid var(--warning-color);
+}
+
+.toast.text-bg-info {
+    background-color: #d1ecf1 !important;
+    color: #055160 !important;
+    border-left: 4px solid var(--info-color);
+}
+
+/* Headers des toasts */
+.toast.text-bg-success .toast-header {
+    background-color: #a3d4a6 !important;
+    color: #0f5132 !important;
+}
+
+.toast.text-bg-danger .toast-header,
+.toast.text-bg-error .toast-header {
+    background-color: #f1aeb5 !important;
+    color: #721c24 !important;
+}
+
+.toast.text-bg-warning .toast-header {
+    background-color: #ffe69c !important;
+    color: #664d03 !important;
+}
+
+.toast.text-bg-info .toast-header {
+    background-color: #a6d5fa !important;
+    color: #055160 !important;
+}
+
+/* Notifications JavaScript avec classes custom */
+#notification-container .alert.bg-success {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+    border-left: 4px solid var(--success-color);
+}
+
+#notification-container .alert.bg-danger {
+    background-color: #f8d7da !important;
+    color: #721c24 !important;
+    border-left: 4px solid var(--danger-color);
+}
+
+#notification-container .alert.bg-warning {
+    background-color: #fff3cd !important;
+    color: #664d03 !important;
+    border-left: 4px solid var(--warning-color);
+}
+
+#notification-container .alert.bg-info {
+    background-color: #d1ecf1 !important;
+    color: #055160 !important;
+    border-left: 4px solid var(--info-color);
 }
 
 /* Classe utilitaires additionnelles */

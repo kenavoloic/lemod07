@@ -82,6 +82,10 @@ configuration_groupes = {
         'color': '#28a745',
         'evaluer_p': True,
         'django_permissions': [
+            # Permissions d'authentification pour accéder aux vues de gestion
+            'auth.view_user',
+            'auth.view_group',
+            
             # Conducteur - Consultation et modification seulement
             'suivi_conducteurs.view_conducteur',
             'suivi_conducteurs.change_conducteur',

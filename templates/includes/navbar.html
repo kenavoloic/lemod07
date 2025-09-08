@@ -99,7 +99,8 @@
                 </li>
                 {% endif %}
 
-                <!-- Menu Gestion (pour les administrateurs) -->
+                <!-- Menu Gestion -->
+                {% user_in_group user "Exploitation" as is_exploitation %}
                 {% if perms.auth.view_group or user.is_staff %}
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle {% block nav_gestion %}{% endblock %}" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -107,28 +108,32 @@
                         Gestion
                     </a>
                     <ul class="dropdown-menu">
-                        {% if perms.auth.view_group %}
-                        <li>
-                            <a class="dropdown-item" href="{% url 'gestion_groupes:dashboard' %}">
-                                <i class="fas fa-users-cog me-2"></i>
-                                Groupes et utilisateurs
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'gestion_groupes:liste_utilisateurs' %}">
-                                <i class="fas fa-user-friends me-2"></i>
-                                Utilisateurs
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'gestion_groupes:historique' %}">
-                                <i class="fas fa-history me-2"></i>
-                                Historique
-                            </a>
-                        </li>
+                        {% if not is_exploitation %}
+                            {% if perms.auth.view_group %}
+                            <li>
+                                <a class="dropdown-item" href="{% url 'gestion_groupes:dashboard' %}">
+                                    <i class="fas fa-users-cog me-2"></i>
+                                    Groupes et utilisateurs
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'gestion_groupes:liste_utilisateurs' %}">
+                                    <i class="fas fa-user-friends me-2"></i>
+                                    Utilisateurs
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'gestion_groupes:historique' %}">
+                                    <i class="fas fa-history me-2"></i>
+                                    Historique
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if user.is_staff or perms.suivi_conducteurs.change_conducteur %}
+                            <li><hr class="dropdown-divider"></li>
+                            {% endif %}
                         {% endif %}
-                        {% if user.is_staff %}
-                        <li><hr class="dropdown-divider"></li>
+                        {% if user.is_staff or perms.suivi_conducteurs.change_conducteur %}
                         <li>
                             <a class="dropdown-item" href="/admin/">
                                 <i class="fas fa-tools me-2"></i>

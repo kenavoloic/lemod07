@@ -32,3 +32,8 @@ def user_peut_evaluer(user):
     if hasattr(user, 'profil') and user.profil:
         return user.profil.peut_evaluer()
     return False
+
+@register.simple_tag
+def user_in_group(user, group_name):
+    """Vérifie si un utilisateur appartient à un groupe spécifique"""
+    return user.groups.filter(name=group_name).exists()

@@ -125,15 +125,15 @@
 					  {% with total_conducteurs=total_conducteurs|add:item.nb_conducteurs %}
 					  {% endwith %}
 						{% endfor %}
-						<h4 class="text-info mb-0">
+					  <h4 class="text-info mb-0">
 						  {% for item in societes_with_stats %}
 						  {{ item.nb_conducteurs }}
 						  {% if not forloop.last %}+{% endif %}
-						  {% endfor %}
+						  {% endfor %}						  
 						</h4>
 						{% endwith %}
 						<!-- <small class="text-muted"> -->
-						  Conducteurs total
+						  Conducteurs au total
 						<!-- </small> -->
 					</div>
 					<div class="col-md-3">

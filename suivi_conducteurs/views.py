@@ -98,7 +98,7 @@ def load_criteres_htmx(request):
         criteres = CritereEvaluation.objects.filter(
             type_evaluation=type_evaluation,
             actif=True
-        ).order_by('nom')
+        ).order_by('numero_ordre')
         
         print(f"DEBUG: Nombre de critères actifs trouvés = {criteres.count()}")
         for critere in criteres:
