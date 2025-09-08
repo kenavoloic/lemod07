@@ -493,9 +493,16 @@ def societe_list(request):
     
     # Ajouter le nombre de conducteurs par société
     societes_with_stats = []
+    total_conducteurs_global = 0
+    total_conducteurs_actifs_global = 0
+    
     for societe in societes:
         nb_conducteurs = Conducteur.objects.filter(salsocid=societe).count()
         nb_conducteurs_actifs = Conducteur.objects.filter(salsocid=societe, salactif=True).count()
+        
+        # Ajouter au total global
+        total_conducteurs_global += nb_conducteurs
+        total_conducteurs_actifs_global += nb_conducteurs_actifs
         
         societes_with_stats.append({
             'societe': societe,
@@ -508,6 +515,8 @@ def societe_list(request):
         'search': search,
         'statut_filter': statut_filter,
         'total_count': len(societes_with_stats),
+        'total_conducteurs_global': total_conducteurs_global,
+        'total_conducteurs_actifs_global': total_conducteurs_actifs_global,
     }
     return render(request, 'suivi_conducteurs/societe_list.html', context)
 
@@ -575,14 +584,29 @@ def site_list(request):
         'conducteur_set__salsocid'
     )
     
-    # Enrichir avec les listes de sociétés
+    # Enrichir avec les listes de sociétés et calculer les totaux
     sites_with_stats = []
+    total_conducteurs_global = 0
+    total_conducteurs_actifs_global = 0
+    total_permanents_global = 0
+    total_interims_global = 0
+    total_sous_traitants_global = 0
+    total_societes_global = 0
+    
     for site in sites_with_annotations:
         # Récupérer les sociétés distinctes pour ce site
         societes_sur_site = Societe.objects.filter(
             conducteur__site=site,
             socactif=True
         ).distinct().order_by('socnom')[:10]
+        
+        # Ajouter aux totaux globaux
+        total_conducteurs_global += site.nb_conducteurs
+        total_conducteurs_actifs_global += site.nb_conducteurs_actifs
+        total_permanents_global += site.nb_permanents
+        total_interims_global += site.nb_interims
+        total_sous_traitants_global += site.nb_sous_traitants
+        total_societes_global += site.nb_societes
         
         sites_with_stats.append({
             'site': site,
@@ -603,6 +627,12 @@ def site_list(request):
     context = {
         'sites_with_stats': sites_with_stats,
         'total_count': len(sites_with_stats),
+        'total_conducteurs_global': total_conducteurs_global,
+        'total_conducteurs_actifs_global': total_conducteurs_actifs_global,
+        'total_permanents_global': total_permanents_global,
+        'total_interims_global': total_interims_global,
+        'total_sous_traitants_global': total_sous_traitants_global,
+        'total_societes_global': total_societes_global,
         'codes_postaux_disponibles': codes_postaux_disponibles,
         'search': search,
         'code_postal_filter': code_postal_filter,

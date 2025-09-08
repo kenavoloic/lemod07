@@ -120,18 +120,9 @@
 						<!-- </small> -->
 					</div>
 					<div class="col-md-3">
-						{% with total_conducteurs=0 %}
-						{% for item in societes_with_stats %}
-					  {% with total_conducteurs=total_conducteurs|add:item.nb_conducteurs %}
-					  {% endwith %}
-						{% endfor %}
 					  <h4 class="text-info mb-0">
-						  {% for item in societes_with_stats %}
-						  {{ item.nb_conducteurs }}
-						  {% if not forloop.last %}+{% endif %}
-						  {% endfor %}						  
+						  {{ total_conducteurs_global }}					  
 						</h4>
-						{% endwith %}
 						<!-- <small class="text-muted"> -->
 						  Conducteurs au total
 						<!-- </small> -->

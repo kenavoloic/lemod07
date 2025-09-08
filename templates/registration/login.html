@@ -92,7 +92,8 @@
 											required autocomplete="current-password">
 										<button type="button" class="password-toggle" id="togglePassword"
 											title="Afficher/masquer le mot de passe"
-											aria-label="Afficher/masquer le mot de passe">
+											aria-label="Afficher/masquer le mot de passe"
+											data-handled="true">
 											<i class="fas fa-eye" id="toggleIcon"></i>
 										</button>
 									</div>
@@ -157,8 +158,17 @@
 		const toggleIcon = document.getElementById('toggleIcon');
 
 		if (toggleButton && passwordField && toggleIcon) {
-			toggleButton.addEventListener('click', function (e) {
+			// Supprimer tout event listener existant pour éviter les conflits
+			const newToggleButton = toggleButton.cloneNode(true);
+			toggleButton.parentNode.replaceChild(newToggleButton, toggleButton);
+			
+			// Récupérer les nouvelles références après le clonage
+			const finalToggleButton = document.getElementById('togglePassword');
+			const finalToggleIcon = document.getElementById('toggleIcon');
+			
+			finalToggleButton.addEventListener('click', function (e) {
 				e.preventDefault();
+				e.stopPropagation();
 
 				// Basculer le type de champ
 				const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
@@ -166,11 +176,11 @@
 
 				// Basculer l'icône
 				if (type === 'password') {
-					toggleIcon.className = 'fas fa-eye';
-					toggleButton.title = 'Afficher le mot de passe';
+					finalToggleIcon.className = 'fas fa-eye';
+					finalToggleButton.title = 'Afficher le mot de passe';
 				} else {
-					toggleIcon.className = 'fas fa-eye-slash';
-					toggleButton.title = 'Masquer le mot de passe';
+					finalToggleIcon.className = 'fas fa-eye-slash';
+					finalToggleButton.title = 'Masquer le mot de passe';
 				}
 
 				// Focus sur le champ après le basculement
@@ -178,10 +188,10 @@
 			});
 
 			// Gestion du clavier (Entrée sur le bouton)
-			toggleButton.addEventListener('keydown', function (e) {
+			finalToggleButton.addEventListener('keydown', function (e) {
 				if (e.key === 'Enter' || e.key === ' ') {
 					e.preventDefault();
-					toggleButton.click();
+					finalToggleButton.click();
 				}
 			});
 		}

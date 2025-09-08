@@ -111,12 +111,7 @@
                     </div>
                     <div class="col-md-3">
                         <h4 class="text-success mb-0">
-                            {% with total_conducteurs=0 %}
-                                {% for item in sites_with_stats %}
-                                    {% with total_conducteurs=total_conducteurs|add:item.nb_conducteurs %}{% endwith %}
-                                {% endfor %}
-                                {% for item in sites_with_stats %}{{ item.nb_conducteurs }}{% if not forloop.last %}+{% endif %}{% endfor %}
-                            {% endwith %}
+                            {{ total_conducteurs_global }}
                         </h4>
 						<!-- <small class="text-muted"> -->
 			  Conducteurs au total
@@ -124,12 +119,7 @@
                     </div>
 		    <div class="col-md-3">
 						<h4 class="text-info mb-0">
-							{% with total_societes=0 %}
-							{% for item in sites_with_stats %}
-							{% with total_societes=total_societes|add:item.nb_societes %}{% endwith %}
-							{% endfor %}
-							{% for item in sites_with_stats %}{{ item.nb_societes }}{% if not forloop.last %}+{% endif %}{% endfor %}
-							{% endwith %}
+							{{ total_societes_global }}
 						</h4>
 						<small class="text-muted">
 							Sociétés actives

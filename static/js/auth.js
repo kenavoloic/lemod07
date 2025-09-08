@@ -24,18 +24,24 @@ class AuthManager {
         
         if (!loginForm) return;
         
-        // Toggle visibilité mot de passe
+        // Toggle visibilité mot de passe - Seulement si pas déjà géré dans le template
         const togglePasswordBtn = document.getElementById('togglePassword');
         const passwordField = loginForm.querySelector('input[type="password"]');
         
-        if (togglePasswordBtn && passwordField) {
+        // Vérifier si le toggle n'est pas déjà géré par le template (éviter les conflits)
+        if (togglePasswordBtn && passwordField && !togglePasswordBtn.hasAttribute('data-handled')) {
             togglePasswordBtn.addEventListener('click', () => {
                 const type = passwordField.type === 'password' ? 'text' : 'password';
                 passwordField.type = type;
                 
                 const icon = togglePasswordBtn.querySelector('i');
-                icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+                if (icon) {
+                    icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+                }
             });
+            
+            // Marquer comme géré pour éviter les doublons
+            togglePasswordBtn.setAttribute('data-handled', 'true');
         }
         
         // Auto-focus sur le champ username
